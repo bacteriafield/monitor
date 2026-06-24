@@ -41,5 +41,4 @@ MONITOR_LABEL="$LABEL" MONITOR_BIN="$BIN" "$ROOT/Scripts/plist.sh"
 
 echo ""
 echo "✅ Installed! Monitor is now running in the menu bar and will start at login."
-echo "   Logs:      ~/Library/Logs/Monitor.{out,err}.log"
 echo "   Uninstall: ./install.sh --uninstall"
