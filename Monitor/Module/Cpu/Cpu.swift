@@ -1,5 +1,5 @@
-import Foundation
 import Darwin.Mach
+import Foundation
 
 enum CpuMonitorError: Error {
     case processorInfoFailed(kern_return_t)
@@ -42,7 +42,7 @@ final class CpuMonitor {
         // current snapshot of ticks, flattened into a single array
         let current = (0..<cpus * states).map { UInt32(bitPattern: info[$0]) }
 
-        // first sample: it is not yet possible to calculate delta
+        // it is not yet possible to calculate delta
         guard previousTicks.count == current.count else {
             previousTicks = current
             return 0
@@ -53,12 +53,17 @@ final class CpuMonitor {
 
         for cpu in 0..<cpus {
             let base = cpu * states
-            let user   = Double(current[base + Int(CPU_STATE_USER)]   &- previousTicks[base + Int(CPU_STATE_USER)])
-            let system = Double(current[base + Int(CPU_STATE_SYSTEM)] &- previousTicks[base + Int(CPU_STATE_SYSTEM)])
-            let nice   = Double(current[base + Int(CPU_STATE_NICE)]   &- previousTicks[base + Int(CPU_STATE_NICE)])
-            let idle   = Double(current[base + Int(CPU_STATE_IDLE)]   &- previousTicks[base + Int(CPU_STATE_IDLE)])
+            let user = Double(
+                current[base + Int(CPU_STATE_USER)] &- previousTicks[base + Int(CPU_STATE_USER)])
+            let system = Double(
+                current[base + Int(CPU_STATE_SYSTEM)] &- previousTicks[base + Int(CPU_STATE_SYSTEM)]
+            )
+            let nice = Double(
+                current[base + Int(CPU_STATE_NICE)] &- previousTicks[base + Int(CPU_STATE_NICE)])
+            let idle = Double(
+                current[base + Int(CPU_STATE_IDLE)] &- previousTicks[base + Int(CPU_STATE_IDLE)])
 
-            totalUsed  += user + system + nice
+            totalUsed += user + system + nice
             totalTicks += user + system + nice + idle
         }
 

@@ -9,7 +9,7 @@ enum NetworkUnit {
 
     func convert(_ bytes: UInt64) -> Double {
         switch self {
-        case .bytes:     return Double(bytes)
+        case .bytes: return Double(bytes)
         case .kilobytes: return Double(bytes) / 1_024
         case .megabytes: return Double(bytes) / 1_048_576
         case .gigabytes: return Double(bytes) / 1_073_741_824
@@ -18,7 +18,7 @@ enum NetworkUnit {
 
     var symbol: String {
         switch self {
-        case .bytes:     return "B"
+        case .bytes: return "B"
         case .kilobytes: return "KB"
         case .megabytes: return "MB"
         case .gigabytes: return "GB"
@@ -46,20 +46,20 @@ struct NetworkSnapshot {
             return NetworkRate(download: 0, upload: 0)
         }
 
-        let deltaIn  = received >= previous.received ? received - previous.received : 0
-        let deltaOut = sent     >= previous.sent     ? sent     - previous.sent     : 0
-        let download = Double(deltaIn)  / elapsed
-        let upload   = Double(deltaOut) / elapsed
+        let deltaIn = received >= previous.received ? received - previous.received : 0
+        let deltaOut = sent >= previous.sent ? sent - previous.sent : 0
+        let download = Double(deltaIn) / elapsed
+        let upload = Double(deltaOut) / elapsed
         return NetworkRate(
             download: download > 0 ? UInt64(download) : 0,
-            upload:   upload   > 0 ? UInt64(upload)   : 0
+            upload: upload > 0 ? UInt64(upload) : 0
         )
     }
 }
 
 struct NetworkRate {
     let download: UInt64  // bytes/s
-    let upload: UInt64    // bytes/s
+    let upload: UInt64  // bytes/s
 
     func downloadFormatted(in unit: NetworkUnit, decimals: Int = 1) -> String {
         "\(String(format: "%.\(decimals)f", unit.convert(download))) \(unit.symbol)/s"
@@ -89,17 +89,17 @@ final class NetworkMonitor {
             let iface = current.pointee
             defer { pointer = iface.ifa_next }
 
-
             // only the AF_LINK entry for each interface populates the `if_data` structure with byte counters; the IPv4/IPv6 entries are not suitable for this purpose.
             guard let addr = iface.ifa_addr,
-                  addr.pointee.sa_family == UInt8(AF_LINK) else { continue }
+                addr.pointee.sa_family == UInt8(AF_LINK)
+            else { continue }
 
             // skips loopback (lo0): local traffic does not count as network traffic
             if (iface.ifa_flags & UInt32(IFF_LOOPBACK)) != 0 { continue }
 
             if let data = iface.ifa_data?.assumingMemoryBound(to: if_data.self) {
                 received += UInt64(data.pointee.ifi_ibytes)
-                sent     += UInt64(data.pointee.ifi_obytes)
+                sent += UInt64(data.pointee.ifi_obytes)
             }
         }
 

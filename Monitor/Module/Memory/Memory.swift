@@ -1,24 +1,24 @@
-import Foundation
 import Darwin.Mach
+import Foundation
 
 enum MemoryMonitorError: Error {
     case hostStatsFailed(kern_return_t)
 }
 
 enum MemoryUnit {
-    case bytes, megabytes, gigabytes // defines the unit that will be used
-    
+    case bytes, megabytes, gigabytes  // defines the unit that will be used
+
     func convert(_ bytes: UInt64) -> Double {
         switch self {
-        case .bytes:     return Double(bytes)
+        case .bytes: return Double(bytes)
         case .megabytes: return Double(bytes) / 1_048_576
         case .gigabytes: return Double(bytes) / 1_073_741_824
         }
     }
-    
+
     var symbol: String {
         switch self {
-        case .bytes:     return "B"
+        case .bytes: return "B"
         case .megabytes: return "MB"
         case .gigabytes: return "GB"
         }
@@ -49,33 +49,34 @@ struct MemorySnapShot {
 
 final class MemoryMonitor {
     private let host: host_t = mach_host_self()
-    
+
     func snapshot() throws -> MemorySnapShot {
         var stats = vm_statistics64()
         var count = mach_msg_type_number_t(
             MemoryLayout<vm_statistics64>.size / MemoryLayout<integer_t>.size
         )
-        
+
         let kr = withUnsafeMutablePointer(to: &stats) {
-                    $0.withMemoryRebound(to: integer_t.self, capacity: Int(count)) {
-                        host_statistics64(host, HOST_VM_INFO64, $0, &count)
-                    }
-                }
+            $0.withMemoryRebound(to: integer_t.self, capacity: Int(count)) {
+                host_statistics64(host, HOST_VM_INFO64, $0, &count)
+            }
+        }
 
-                guard kr == KERN_SUCCESS else {
-                    throw MemoryMonitorError.hostStatsFailed(kr)
-                }
+        guard kr == KERN_SUCCESS else {
+            throw MemoryMonitorError.hostStatsFailed(kr)
+        }
 
-                let pageSize = UInt64(vm_kernel_page_size)
+        let pageSize = UInt64(vm_kernel_page_size)
 
-                let usedPages = UInt64(stats.internal_page_count)
-                              - UInt64(stats.purgeable_count)
-                              + UInt64(stats.wire_count)
-                              + UInt64(stats.compressor_page_count)
-                let used  = usedPages * pageSize
-                let total = ProcessInfo.processInfo.physicalMemory
+        let usedPages =
+            UInt64(stats.internal_page_count)
+            - UInt64(stats.purgeable_count)
+            + UInt64(stats.wire_count)
+            + UInt64(stats.compressor_page_count)
+        let used = usedPages * pageSize
+        let total = ProcessInfo.processInfo.physicalMemory
 
-                return MemorySnapShot(used: used, total: total)
+        return MemorySnapShot(used: used, total: total)
     }
-    
+
 }
