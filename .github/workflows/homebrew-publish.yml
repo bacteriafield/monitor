@@ -1,0 +1,57 @@
+name: Publish Homebrew Formula
+on:
+  push:
+    tags:
+      - 'v*'
+jobs:
+  homebrew:
+    runs-on: macos-latest
+    steps:
+      - name: Checkout tap repo
+        uses: actions/checkout@v4
+        with:
+          repository: bacteriafield/homebrew-monitor
+          token: ${{ secrets.HOMEBREW_TAP_TOKEN }}
+
+      - name: Download release tarball and compute SHA
+        id: sha
+        run: |
+          TARBALL="https://github.com/bacteriafield/monitor/archive/refs/tags/${{ github.ref_name }}.tar.gz"
+          curl -sL "$TARBALL" -o source.tar.gz
+          SHA=$(shasum -a 256 source.tar.gz | awk '{print $1}')
+          echo "sha256=$SHA" >> "$GITHUB_OUTPUT"
+          echo "tarball=$TARBALL" >> "$GITHUB_OUTPUT"
+
+      - name: Update Formula
+        run: |
+          cat > Formula/monitor.rb <<EOF
+          class Monitor < Formula
+            desc "macOS menu bar monitor for CPU, RAM and network usage"
+            homepage "https://github.com/bacteriafield/monitor"
+            url "${{ steps.sha.outputs.tarball }}"
+            sha256 "${{ steps.sha.outputs.sha256 }}"
+            license "MIT"
+            depends_on macos: :ventura
+            def install
+              system "swift", "build", "--disable-sandbox", "-c", "release"
+              bin.install ".build/release/Monitor"
+            end
+            service do
+              run [opt_bin/"Monitor"]
+              keep_alive crashed: true
+              log_path var/"log/monitor.log"
+              error_log_path var/"log/monitor.log"
+            end
+            test do
+              assert_predicate bin/"Monitor", :exist?
+            end
+          end
+          EOF
+
+      - name: Commit and push Formula
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add Formula/monitor.rb
+          git commit -m "Update formula to ${{ github.ref_name }}" || echo "No changes"
+          git push

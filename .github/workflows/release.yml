@@ -1,0 +1,36 @@
+name: Release
+on:
+  push:
+    tags:
+      - "v*"
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    runs-on: macos-14
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Build (release)
+        run: swift build -c release --disable-sandbox
+
+      - name: Package artifact
+        run: |
+          VERSION="${GITHUB_REF_NAME#v}"
+          STAGE="Monitor-${VERSION}-macos"
+          mkdir -p "$STAGE/Scripts"
+          cp .build/release/Monitor "$STAGE/"
+          cp install.sh "$STAGE/"
+          cp Scripts/plist.sh "$STAGE/Scripts/"
+          cp README.md LICENSE "$STAGE/" 2>/dev/null || true
+          tar -czf "${STAGE}.tar.gz" "$STAGE"
+          shasum -a 256 "${STAGE}.tar.gz"
+
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          files: Monitor-*-macos.tar.gz
+          generate_release_notes: true
