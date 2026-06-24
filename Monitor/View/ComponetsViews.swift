@@ -3,13 +3,17 @@ import AppKit
 final class AppDelegate: NSObject, NSApplicationDelegate {
     private var cpuItem: NSStatusItem!
     private var ramItem: NSStatusItem!
+    private var networkItem: NSStatusItem!
     private var timer: Timer?
-    private let monitor = CpuMonitor()
+    private let cpu = CpuMonitor()
+    private let memory = MemoryMonitor()
+    private let network = NetworkMonitor()
     
     func applicationDidFinishLaunching(_ aNotification: Notification) {
         NSApp.setActivationPolicy(.accessory)
         cpuItem = makeStatusItem(symbol: "cpu", title: "...")
-        ramItem = makeStatusItem(symbol: "memory", title: "8.1 GB")
+        ramItem = makeStatusItem(symbol: "memorychip", title: "...")
+        networkItem = makeStatusItem(symbol: "network", title: "...")
         
         startUpdating()
     }
@@ -30,14 +34,20 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     
     private func update() {
         // CPU
-        if let usage = try? monitor.usage() {
+        if let usage = try? cpu.usage() {
             cpuItem.button?.title = " \(String(format: "%.1f", usage))%"
         }
 
 //        // RAM
-//        if let (used, total) = ramUsage() {
-//            ramItem.button?.title = " \(String(format: "%.1f", used)) / \(String(format: "%.1f", total)) GB"
-//        }
+        if let snap = try? memory.snapshot() {
+            // result: (used) / (total)gb
+            ramItem.button?.title = "\(snap.formatted(in: .gigabytes))"
+        }
+        
+        // NETWORK
+        if let rate = try? network.rate() {
+            networkItem.button?.title = "↓ \(rate.downloadFormatted(in: .megabytes)) ↑ \(rate.uploadFormatted(in: .megabytes))"
+        }
     }
     
     private func makeStatusItem(symbol: String, title: String) -> NSStatusItem {

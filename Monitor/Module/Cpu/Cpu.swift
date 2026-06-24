@@ -39,10 +39,10 @@ final class CpuMonitor {
         let states = Int(CPU_STATE_MAX)
         let cpus = Int(cpuCount)
 
-        // Snapshot atual dos ticks, achatado em um único array.
+        // current snapshot of ticks, flattened into a single array
         let current = (0..<cpus * states).map { UInt32(bitPattern: info[$0]) }
 
-        // Primeira amostra: ainda não dá pra calcular delta.
+        // first sample: it is not yet possible to calculate delta
         guard previousTicks.count == current.count else {
             previousTicks = current
             return 0
