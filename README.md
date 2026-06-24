@@ -1,6 +1,13 @@
 # A modern monitor hardware to Apple Silicon Macbook devices
 
 <img align="center" src="./Docs/Screenshot/screenshot.png"/>
+<div align="center">
+
+[![License: MIT](https://img.shields.io/github/license/bacteriafield/monitor?color=yellow)](https://github.com/bacteriafield/monitor/blob/main/LICENSE)
+[![Version](https://img.shields.io/github/v/release/bacteriafield/monitor?color=blue)](https://github.com/bacteriafield/monitor/releases)
+![GitHub stars](https://img.shields.io/github/stars/bacteriafield/monitor)
+
+</div>
 This tool allows for precise hardware usage monitoring on Apple Silicon MacBooks. It is an open-source solution.
 
 ### Requirements
