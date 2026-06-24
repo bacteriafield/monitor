@@ -9,4 +9,4 @@ class Main {
     }
 }
 
-Main().Initialize()
+Main().Initialize() // initialize the app
