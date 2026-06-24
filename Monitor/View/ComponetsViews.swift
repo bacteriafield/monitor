@@ -61,11 +61,6 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
             button.imagePosition = .imageLeading
             button.title = " \(title)"
         }
-        let menu = NSMenu()
-        menu.addItem(NSMenuItem(title: "Monitor", action: nil, keyEquivalent: ""))
-        menu.addItem(.separator())
-        item.menu = menu
-
         return item
     }
 
