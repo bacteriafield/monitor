@@ -9,7 +9,7 @@ let package = Package(
     targets: [
         .executableTarget(
             name: "Monitor",
-            path: "Monitor"
+            path: "monitor"
         )
     ]
 )
