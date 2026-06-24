@@ -18,6 +18,7 @@ Otherwise, if you have a MacBook with any M-series chip, you will only need to d
 ### Installation
 **Brew**
 ```bash
+brew tap bacteriafield/monitor
 brew install monitor
 ```
 
